@@ -4,9 +4,9 @@
  *  Created on: 20 дек. 2019 г.
  *      Author: Denis
  */
-#include "commands.h"
-#include "memtest.h"
 #include <unistd.h>
+#include "commands.h"
+#include "mem_ops.h"
 
 /**
  * double *shiftDAC		сдвиги с фронтпанели;
@@ -51,11 +51,12 @@ void setSizeSamples(unsigned int num)
 	usleep(100);
 }
 
-/*void pageMode(unsigned int on)//fix
+void pageMode(unsigned int on)//fix
 {
-	write_reg(16,(on&1)<<1);
-	usleep(300);
-}*/
+    //TODO implement it!
+//	write_reg(16,(on&1)<<1);
+//	usleep(300);
+}
 
 /*void externalStart(unsigned int on)//fix
 {
@@ -85,20 +86,6 @@ void setMode(unsigned int mode)//unsigned int calibr=0x1, pachka=0<<1;
 	write_reg(15, 1);//initDRS2
 	usleep(100);
 }
-
-/*
-void setCalibrate(unsigned int calibr,unsigned int sigsin)//unsigned int calibr=0x1, pachka=0<<1;
-{
-//0 - soft start
-//1 - external start
-//2 - page mode
-//3 - amplitude calibrate
-//4 - time calibrate
-	write_reg(16, calibr&1);
-	write_reg(sigsin&1);
-	usleep(100);
-}
-*/
 
 void setTimeCalibrate(unsigned int enable)//fix
 {

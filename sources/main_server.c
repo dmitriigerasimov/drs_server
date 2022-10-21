@@ -8,6 +8,8 @@
 #include <dap_strfuncs.h>
 #include <dap_file_utils.h>
 #include <dap_cli_server.h>
+
+#include "eth_srv.h"
 #include "sig_unix_handler.h"
 
 
@@ -139,6 +141,13 @@ int main(int argc, const char **argv)
 
     save_process_pid_in_file(s_pid_file_path);
 
+    // Инициализация сервера
+
+    if(eth_srv_init() == 0)
+        eth_srv_start();
+    else
+        log_it(L_CRITICAL, "Can't init eth srv");
+
     /*if ( g_server_enabled ) {
 
         int32_t l_port = dap_config_get_item_int32(g_config, "server", "listen_port_tcp");
@@ -153,13 +162,21 @@ int main(int argc, const char **argv)
     if ( l_server ) { // If listener server is initialized
     }*/
 
-    int l_rc = dap_events_wait();
-    log_it( l_rc ? L_CRITICAL : L_NOTICE, "Server loop stopped with return code %d", l_rc );
+    int l_rc = 0;
+    //l_rc = dap_events_wait();
+    //log_it( l_rc ? L_CRITICAL : L_NOTICE, "Server loop stopped with return code %d", l_rc );
+
+    // Запускаем луп со старого сервера
+    l_rc = eth_srv_loop();
+
     // Deinit modules
+    eth_srv_deinit();
 
     dap_config_close( g_config );
     dap_interval_timer_deinit();
     dap_common_deinit();
+
+
     return l_rc * 10;
 }
 

@@ -23,8 +23,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..
 #endif()
 
 #This paths will be used by project-dependent project libraries
-target_include_directories(${PROJECT_NAME} INTERFACE include/ src/rpmalloc/ src/FIPS202/ src/rand
-)
+target_include_directories(${PROJECT_NAME} INTERFACE include/ src/rpmalloc/ src/FIPS202/ src/rand)
 
 if(WIN32)
   include_directories(include/)

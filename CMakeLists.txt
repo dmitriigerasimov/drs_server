@@ -35,10 +35,10 @@ add_subdirectory(sources/drs)
 set (SERVER_SOURCES
     sources/main_server.c
     sources/sig_unix_handler.c
-#    sources/eth_srv.c
+    sources/eth_srv.c
     )
 set (SERVER_HEADERS
-#    sources/eth_srv.h
+    sources/eth_srv.h
     sources/sig_unix_handler.h
     )
 # Консолька к серверу
@@ -57,7 +57,7 @@ set (TESTS_HEADERS
 
 #-- Определяем исполняемый файл и библиотеки к нему
 add_executable(${PROJECT_NAME} ${SERVER_SOURCES} ${SERVER_HEADERS})
-target_link_libraries(${PROJECT_NAME} dap_core dap_crypto dap_io dap_cli_server)
+target_link_libraries(${PROJECT_NAME} dap_core dap_crypto dap_io dap_cli_server drs)
 
 #add_executable(${PROJECT_NAME}-cli ${CLI_SOURCES})
 #target_link_libraries(${PROJECT_NAME}-cli dap_core )

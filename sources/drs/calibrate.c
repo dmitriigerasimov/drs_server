@@ -10,7 +10,9 @@
 #include <unistd.h>
 #include "commands.h"
 #include "data_operations.h"
+
 #include <string.h>
+
 /**
  * double*x -массив под знчаения X
  * unsigned int shift - сдвиг ячеек
@@ -20,7 +22,7 @@
 const double freqDRS[]= {1.024, 2.048, 3.072, 4.096, 4.915200};
 int current_freq;
 
-void getXArray(double*x, unsigned int shift,coefficients *coef,unsigned int key)
+void getXArray(double*x, unsigned int *shift,coefficients *coef,unsigned int key)
 {
 	double xMas[8192];
 	if((key&16)!=0)
@@ -31,7 +33,7 @@ void getXArray(double*x, unsigned int shift,coefficients *coef,unsigned int key)
 	{
 		applyGlobalTimeCalibration(x,xMas,shift,coef);
 	}else{
-		memcpy(x,xMas,65536);
+        memcpy(x,xMas,sizeof(xMas));
 	}
 	if((key&64)!=0)
 	{
@@ -122,7 +124,7 @@ void applyGlobalTimeCalibration(double *x,double *xMas, unsigned int *shift, coe
 unsigned int globalTimeCalibration(unsigned int numCycle, coefficients *coef,parameter_t *prm)
 {
 	double sumDeltaRef[2048], statistic[32768],x[32768],dBuf[32768],dn=0;
-	unsigned short pageBuffer[2048],ind;
+    unsigned short pageBuffer[2048],ind = 0;
 	unsigned int shift[2],k,t;
 	//unsigned char i=0;
 	fillArray((unsigned char*)(statistic),(unsigned char*)&dn,32768,sizeof(dn));
@@ -134,50 +136,27 @@ unsigned int globalTimeCalibration(unsigned int numCycle, coefficients *coef,par
 		return 0;
 	}
 	setMode(4);
-//setCalibrate(1,0);
-//	setTimeCalibrate(1);
-	write_reg(0x22,1);
-	usleep(300);
-	write_reg(0xB,1);//Sync
-	usleep(300);
 	while(ind<numCycle)
 	{
 		ind++;
 		if(onceGet1024(&pageBuffer[0],&shift[0],1,0,0)==0)
 		{
 			printf("data not read\n");
-			//setCalibrate(0,0);
-			//setTimeCalibrate(0);
 			setMode(0);
-			write_reg(0x22,0);
-			usleep(300);
-			write_reg(0xB,1);
-			usleep(300);
 			return 0;
 		}
 		if(onceGet1024(&pageBuffer[1024],&shift[1],1,0,1)==0)
 		{
 			printf("data not read\n");
-//			setCalibrate(0,0);
-//			setTimeCalibrate(0);
 			setMode(0);
-			write_reg(0x22,0);
-			usleep(300);
-			write_reg(0xB,1);
-			usleep(300);
 			return 0;
 		}
 
 		doColibrateCurgr(pageBuffer,dBuf,shift,coef,1024,4,3,prm);
 		applyTimeCalibration(x,coef,shift);
-		globalTimeCalibr(x,dBuf,shift,sumDeltaRef,statistic);
+        globalTimeCalibr(x,dBuf,shift[0],sumDeltaRef,statistic);
 	}
-	setCalibrate(0,0);
-	setTimeCalibrate(0);
-	write_reg(0x22,0);
-	usleep(100);
-	write_reg(0xB,1);
-	usleep(100);
+    setMode(0);
 
 	for(k=0;k<4;k++)
 	{
@@ -277,26 +256,18 @@ unsigned int timeCalibration(unsigned int minN, coefficients *coef,parameter_t *
 			printf("before timer calibration you need to do the amplitude calibration\n");
 			return 0;
 	}
-	setCalibrate(1,0);
-	setTimeCalibrate(1);
-	write_reg(0x22,1);
-	usleep(300);
-	write_reg(0xB,1);//  Sync
-	usleep(300);
+
+    setMode(4);
+
 	while(minValue<minN)
 	{
 		k++;
 		n++;
 		//printf("min=%u\tminValue=%f\n",minN,minValue);
-		if(onceGet(pageBuffer,shift,1,0)==0){
+        if(onceGet(pageBuffer,shift,1,0,0)==0){
 			printf("data not read\n");
-			setCalibrate(0,0);
-			setTimeCalibrate(0);
-			write_reg(0x22,0);
-			usleep(300);
-			write_reg(0xB,1);
-			usleep(300);
-			return 0;
+            setMode(0);
+            return 0;
 		}
 		doColibrateCurgr(pageBuffer,dBuf,shift,coef,1024,4,3,prm);
 		minValue=getMinDeltas(dBuf,sumDeltaRef,statistic,shift);
@@ -309,12 +280,8 @@ unsigned int timeCalibration(unsigned int minN, coefficients *coef,parameter_t *
 			coef->deltaTimeRef[t*4+k]=sumDeltaRef[t*4+k]/statistic[t*4+k];
 		}
 	}
-	setCalibrate(0,0);
-	setTimeCalibrate(0);
-	write_reg(0x22,0);
-	usleep(100);
-	write_reg(0xB,1);
-	usleep(100);
+    setMode(0);
+
 	coef->indicator|=2;
 	return 1;
 }
@@ -376,16 +343,16 @@ double getMinDeltas(double*buffer,double *sumDeltaRef,double *statistic,unsigned
  * unsigned int chanalCount			количество каналов
  * unsigned int key					0 бит- применение калибровки для ячеек, 1 бит- межканальная калибровка,2 бит- избавление от всплесков, 3 бит- приведение к физическим виличинам
  * */
-void doColibrateCurgr(unsigned short *buffer,double *dBuf,unsigned int shift,coefficients *coef,unsigned int chanalLength,unsigned int chanalCount,unsigned int key,parameter_t *prm)
+void doColibrateCurgr(unsigned short *buffer,double *dBuf,unsigned int *shift,coefficients *coef,unsigned int chanalLength,unsigned int chanalCount,unsigned int key,parameter_t *prm)
 {
-	int j,k,koefIndex;
+    unsigned int j,k,koefIndex;
 	double average[4];
 	getAverageInt(average,buffer,1000,4);
 	for(j=0;j<chanalCount;j++)
 	{
 		for(k=0;k<chanalLength;k++)
 		{
-			koefIndex=(shift+k)&1023;
+            koefIndex=( shift[k>>1] )&1023;
 			dBuf[k*chanalCount+j]=buffer[k*chanalCount+j];
 			if((key&1)!=0)
 			{
@@ -450,8 +417,7 @@ unsigned int calibrate_fin(double*calibLvl,unsigned int N,float *DAC_gain,float 
 	unsigned int shift[2],statistic[32768],intn=0;
 	fillArray((unsigned char*)(&coef->b),(unsigned char*)&dn,32768,sizeof(dn));
 	fillArray((unsigned char*)(&coef->k),(unsigned char*)&dn,32768,sizeof(dn));
-	setCalibrate(1,0);
-	setTimeCalibrate(1);
+    setMode(1);
 	dh=(calibLvl[1]-calibLvl[0])/(count-1);
 	for(i=0;i<count;i++)
 	{
@@ -464,22 +430,16 @@ unsigned int calibrate_fin(double*calibLvl,unsigned int N,float *DAC_gain,float 
 
 		for(k=0;k<N;k++)
 		{
-			if(onceGet(&loadData[0],&shift[0],1,0,0)==0)
-			{
+			if(onceGet(&loadData[0],&shift[0],1,0,0)==0){
 				printf("data not read\n");
-				setTimeCalibrate(0);
-				setCalibrate(0,0);
+                setMode(0);
 				return 0;
 			}
-			if(onceGet(&loadData[32768],&shift[1],1,0,1)==0)
-			{
+			if(onceGet(&loadData[32768],&shift[1],1,0,1)==0){
 				printf("data not read\n");
-				setTimeCalibrate(0);
-				setCalibrate(0,0);
+                setMode(0);
 				return 0;
-			}
-            else
-            {
+            } else {
                 if((shift[0]>1023)||(shift[1]>1023))
                 {
 			 	   printf("shift index went beyond\n");
@@ -490,8 +450,7 @@ unsigned int calibrate_fin(double*calibLvl,unsigned int N,float *DAC_gain,float 
 		}
 		calcCoeffB(&acc[i*32768],statistic,&average[i*4]);
 	}
-	setTimeCalibrate(0);
-	setCalibrate(0,0);
+    setMode(0);
 	getCoefficients(acc,coef,calibLvl,count,average);
 	return 1;
 }
@@ -548,8 +507,7 @@ unsigned int chanalsCalibration(double*calibLvl,float *DAC_gain,float *DAC_offse
 		if(onceGet(loadData,shift,1,0,0)==0)
 		{
 			printf("data not read\n");
-			setCalibrate(0,0);
-			setTimeCalibrate(0);
+            setMode(0);
 			return 0;
 		}else if(shift[0]>1023){
 			printf("shift index went beyond\n");

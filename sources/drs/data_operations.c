@@ -4,12 +4,14 @@
  *  Created on: 20 дек. 2019 г.
  *      Author: Denis
  */
-#include "data_operations.h"
-#include "commands.h"
 #include <unistd.h>
-#include "memtest.h"
 #include <stdio.h>
 #include <string.h>
+
+#include "data_operations.h"
+#include "commands.h"
+#include "mem_ops.h"
+
 /**
  * МНК
  * double*yArr			массив Y
@@ -44,7 +46,7 @@ void pageModeStart(unsigned int num)
 	unsigned int flag=0;
 	setNumPages(num);
 //	setSizeSamples(num*1024);//Peter fix
-	pageMode(1);
+//	pageMode(1);
 	flag=readEnWrite()>>31;
 	while(flag==0)
 	{
@@ -91,7 +93,7 @@ unsigned int onceGet(unsigned short *buffer,unsigned int *shift,unsigned int cal
 		//readExternalStatus(0xc); //Peter fix
 	}
 	if(flag==1){
-		readNPage(&buffer[0],&shift[0],0,1,drsnum);
+        readNPage(&buffer[0],&shift[0],0,drsnum);
 //		readNPage(&buffer[8192],&shift[1024],0,1,drsnum);
 	}
 	flagEndRead(1);
@@ -132,7 +134,7 @@ unsigned int onceGet1024(unsigned short *buffer,unsigned int *shift,unsigned int
 		//readExternalStatus(0xc); //Peter fix
 	}
 	if(flag==1){
-		readNPage(&buffer[0],&shift[0],0,1,drsnum);
+        readNPage(&buffer[0],&shift[0],0,drsnum);
 //		readNPage(&buffer[8192],&shift[1024],0,1,drsnum);
 	}
 	flagEndRead(1);
@@ -250,7 +252,7 @@ void readNPages(unsigned short *buffer,unsigned int *shift,unsigned int pageCoun
 	 int t;
 	 for (t=0; t<pageCount;t++)
 	 {
-		 readNPage(&buffer[t*step],&shift[t],t,1, drsnum);
+         readNPage(&buffer[t*step],&shift[t],t, drsnum);
 	 }
 }
 

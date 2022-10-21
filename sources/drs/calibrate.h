@@ -7,7 +7,7 @@
  */
 #pragma once
 
-#include "eth_ops.h"
+#include "drs.h"
 
 
 #define GeneratorFrequency 50 //MHz
@@ -31,7 +31,7 @@ typedef struct
 	unsigned int splash[4];
 } coefficients;
 
-void getXArray(double*x, unsigned int shift,coefficients *coef,unsigned int key);
+void getXArray(double*x, unsigned int *shift,coefficients *coef,unsigned int key);
 void xToReal(double*x);
 void findSplash(double*Y,unsigned int *shift,coefficients *coef,unsigned int lvl);
 void removeSplash(double*Y,unsigned int *shift,coefficients *coef);
@@ -40,13 +40,13 @@ unsigned int globalTimeCalibration(unsigned int numCycle, coefficients *coef,par
 void globalTimeCalibr(double *x, double *y,unsigned int shift,double *sumDeltaRef, double *stat);
 void applyTimeCalibration(double *bufferX, coefficients *coef,unsigned int * shift);
 unsigned int timeCalibration(unsigned int minN, coefficients *coef,parameter_t *prm);
-double getMinDeltas(double*buffer,double *sumDeltaRef,double *stat,unsigned int shift);
+double getMinDeltas(double*buffer,double *sumDeltaRef,double *stat,unsigned int *shift);
 void doColibrateCurgr(unsigned short *buffer,double *dBuf,unsigned int *shift,coefficients *coef,unsigned int chanalLength,unsigned int chanalCount,unsigned int key,parameter_t *prm);
 unsigned int calibrateAmplitude(coefficients *coef,double *calibLvl,unsigned int N, double *shiftDAC,parameter_t *prm, unsigned int count);
 unsigned int calibrate_fin(double*calibLvl,unsigned int N,float *DAC_gain,float *DAC_offset,coefficients *coef,unsigned int count);
 void getCoefficients(double *acc,coefficients *coef,double* calibLvl,int count,double *average);
 unsigned int chanalsCalibration(double*calibLvl,float *DAC_gain,float *DAC_offset,coefficients *coef, unsigned int count,parameter_t *prm);
-void collectStatisticsB(double *acc,unsigned short *buff,unsigned *shift,unsigned int *stat);
+void collectStatisticsB(double *acc,unsigned short *buff,unsigned int *shift,unsigned int *stat);
 void calcCoeffB(double *acc,unsigned int *statistic,double *average);
 
 
