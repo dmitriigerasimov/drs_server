@@ -1,0 +1,4 @@
+[submodule "libdrs/"]
+	url = git@github.com:dmitriigerasimov/libdrs.git
+	branch = master
+
