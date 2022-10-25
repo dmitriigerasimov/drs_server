@@ -59,5 +59,18 @@ set (TESTS_HEADERS
 add_executable(${PROJECT_NAME} ${SERVER_SOURCES} ${SERVER_HEADERS})
 target_link_libraries(${PROJECT_NAME} dap_core dap_crypto dap_io dap_cli_server drs)
 
-#add_executable(${PROJECT_NAME}-cli ${CLI_SOURCES})
-#target_link_libraries(${PROJECT_NAME}-cli dap_core )
+add_executable(${PROJECT_NAME}_cli ${CLI_SOURCES})
+target_link_libraries(${PROJECT_NAME}_cli dap_core dap_app_cli)
+
+#--- ќписываем действи€ при инсталл€ции
+set(CMAKE_INSTALL_PREFIX /opt/drs_server)
+set(BINDIR ${CMAKE_INSTALL_PREFIX}/bin)
+set(CONFIGDIR ${CMAKE_INSTALL_PREFIX}/etc)
+set(SBINDIR ${CMAKE_INSTALL_PREFIX}/sbin)
+set(LIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
+set(RLIBDIR ${CMAKE_INSTALL_PREFIX}/lib)
+set(SHAREDIR ${CMAKE_INSTALL_PREFIX}/share)
+
+INSTALL(DIRECTORY dist/ DESTINATION ${SHAREDIR} FILES_MATCHING PATTERN "*" PATTERN "*")
+INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${BINDIR})
+INSTALL(TARGETS ${PROJECT_NAME}_cli DESTINATION ${BINDIR})

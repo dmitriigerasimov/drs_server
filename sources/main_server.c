@@ -62,6 +62,7 @@ int main(int argc, const char **argv)
     if (!g_config) {
         return -1;
     }
+    printf("DRS Server\n");
 
     log_it( L_DAP, "*** DRS Server version: %s ***", DAP_VERSION );
 

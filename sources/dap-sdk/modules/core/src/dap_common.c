@@ -612,7 +612,8 @@ unsigned dap_gettid()
 #elif defined (DAP_OS_WINDOWS)
     return (unsigned) GetCurrentThreadId();
 #elif defined(DAP_OS_LINUX)
-    return gettid();
+    //return gettid();
+    return pthread_self();
 #else
 #error "Not defined dap_gettid() for your platform"
 #endif

@@ -29,6 +29,7 @@
 
 //#include "dap_client.h"
 #include "dap_common.h"
+#include "dap_config.h"
 #include "dap_file_utils.h"
 #include "dap_strfuncs.h"
 #include "dap_app_cli.h"
